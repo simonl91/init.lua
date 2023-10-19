@@ -74,6 +74,8 @@ require('lazy').setup({
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
 
+  'ThePrimeagen/harpoon',
+
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
   {
@@ -107,6 +109,11 @@ require('lazy').setup({
       -- Adds a number of user-friendly snippets
       'rafamadriz/friendly-snippets',
     },
+  },
+
+  {
+    -- Method overloading
+    'Issafalcon/lsp-overloads.nvim'
   },
 
   -- Useful plugin to show you pending keybinds.
@@ -196,13 +203,8 @@ require('lazy').setup({
       -- requirements installed.
       {
         'nvim-telescope/telescope-fzf-native.nvim',
-        -- NOTE: If you are having trouble with this installation,
-        --       refer to the README for telescope-fzf-native for more instructions.
-        build = 'make',
-        cond = function()
-          return vim.fn.executable 'make' == 1
-        end,
-      },
+        build = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build'
+      } ,
     },
   },
 
@@ -236,6 +238,7 @@ require('lazy').setup({
 
 -- Set highlight on search
 vim.o.hlsearch = false
+vim.o.incsearch = true
 
 -- Make line numbers default
 vim.wo.number = true
@@ -258,12 +261,25 @@ vim.o.undofile = true
 vim.o.ignorecase = true
 vim.o.smartcase = true
 
+vim.opt.smartindent = true
+
 -- Keep signcolumn on by default
 vim.wo.signcolumn = 'yes'
 
 -- Decrease update time
-vim.o.updatetime = 250
+vim.o.updatetime = 50
 vim.o.timeoutlen = 300
+
+vim.opt.colorcolumn = "80"
+vim.opt.scrolloff = 8
+
+vim.opt.tabstop = 4
+vim.opt.softtabstop = 4
+vim.opt.shiftwidth = 4
+vim.opt.expandtab = true
+
+vim.opt.nu = true
+vim.opt.relativenumber = true
 
 -- Set completeopt to have a better completion experience
 vim.o.completeopt = 'menuone,noselect'
@@ -276,6 +292,22 @@ vim.o.termguicolors = true
 -- Keymaps for better default experience
 -- See `:help vim.keymap.set()`
 vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
+
+vim.keymap.set('n', '<leader>pv', vim.cmd.Ex)
+
+vim.keymap.set('n', '<C-u>', '<C-u>zz')
+vim.keymap.set('n', '<C-d>', '<C-d>zz')
+vim.keymap.set("n", "n", "nzzzv")
+vim.keymap.set("n", "N", "Nzzzv")
+
+vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
+vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
+
+vim.keymap.set("x", "<leader>p", [["_dP]])
+vim.keymap.set({"n", "v"}, "<leader>y", [["+y]])
+vim.keymap.set("n", "<leader>Y", [["+Y]])
+
+vim.keymap.set({"n", "v"}, "<leader>d", [["_d]])
 
 -- Remap for dealing with word wrap
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
@@ -292,6 +324,18 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   pattern = '*',
 })
 
+
+-- [[ Configure Harpoon ]]
+local mark = require('harpoon.mark')
+local ui = require('harpoon.ui')
+vim.keymap.set('n', '<leader>a', mark.add_file, { desc = 'Harpoon [A]dd file' })
+vim.keymap.set('n', '<leader>l', ui.toggle_quick_menu, { desc = 'Harpoon [L]ist files' })
+vim.keymap.set('n', '<M-a>', function () ui.nav_file(1) end)
+vim.keymap.set('n', '<M-s>', function () ui.nav_file(2) end)
+vim.keymap.set('n', '<M-d>', function () ui.nav_file(3) end)
+vim.keymap.set('n', '<M-f>', function () ui.nav_file(4) end)
+
+
 -- [[ Configure Telescope ]]
 -- See `:help telescope` and `:help telescope.setup()`
 require('telescope').setup {
@@ -304,6 +348,8 @@ require('telescope').setup {
     },
   },
 }
+
+require('nvim-treesitter.install').compilers = { "clang" }
 
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
@@ -319,13 +365,13 @@ vim.keymap.set('n', '<leader>/', function()
   })
 end, { desc = '[/] Fuzzily search in current buffer' })
 
-vim.keymap.set('n', '<leader>gf', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
-vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
-vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
-vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]ord' })
-vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
-vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
-vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = '[S]earch [R]esume' })
+vim.keymap.set('n', '<leader>ff', require('telescope.builtin').git_files, { desc = '[F]ind project [F]iles' })
+vim.keymap.set('n', '<leader>fa', require('telescope.builtin').find_files, { desc = '[F]ind [A]ll files' })
+vim.keymap.set('n', '<leader>fh', require('telescope.builtin').help_tags, { desc = '[F]ind [H]elp' })
+vim.keymap.set('n', '<leader>fw', require('telescope.builtin').grep_string, { desc = '[F]ind current [W]ord' })
+vim.keymap.set('n', '<leader>fs', require('telescope.builtin').live_grep, { desc = '[F]ind by [S]earch text' })
+vim.keymap.set('n', '<leader>fd', require('telescope.builtin').diagnostics, { desc = '[F]ind [D]iagnostics' })
+vim.keymap.set('n', '<leader>fr', require('telescope.builtin').resume, { desc = '[F]ind [R]esume' })
 
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
@@ -384,7 +430,7 @@ vim.defer_fn(function()
         },
       },
       swap = {
-        enable = true,
+        enable = false,
         swap_next = {
           ['<leader>a'] = '@parameter.inner',
         },
@@ -404,7 +450,7 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 
 -- [[ Configure LSP ]]
 --  This function gets run when an LSP connects to a particular buffer.
-local on_attach = function(_, bufnr)
+local on_attach = function(client, bufnr)
   -- NOTE: Remember that lua is a real programming language, and as such it is possible
   -- to define small helper and utility functions so you don't have to repeat yourself
   -- many times.
@@ -445,6 +491,41 @@ local on_attach = function(_, bufnr)
   vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
     vim.lsp.buf.format()
   end, { desc = 'Format current buffer with LSP' })
+
+
+  require('lsp-overloads').setup(client, {
+      -- UI options are mostly the same as those passed to vim.lsp.util.open_floating_preview
+      ui = {
+        border = "single",           -- The border to use for the signature popup window. Accepts same border values as |nvim_open_win()|.
+        height = nil,               -- Height of the signature popup window (nil allows dynamic sizing based on content of the help)
+        width = nil,                -- Width of the signature popup window (nil allows dynamic sizing based on content of the help)
+        wrap = true,                -- Wrap long lines
+        wrap_at = nil,              -- Character to wrap at for computing height when wrap enabled
+        max_width = nil,            -- Maximum signature popup width
+        max_height = nil,           -- Maximum signature popup height
+        -- Events that will close the signature popup window: use {"CursorMoved", "CursorMovedI", "InsertCharPre"} to hide the window when typing
+        close_events = { "CursorMoved", "BufHidden", "InsertLeave" },
+        focusable = true,           -- Make the popup float focusable
+        focus = false,              -- If focusable is also true, and this is set to true, navigating through overloads will focus into the popup window (probably not what you want)
+        offset_x = 0,               -- Horizontal offset of the floating window relative to the cursor position
+        offset_y = 0,                -- Vertical offset of the floating window relative to the cursor position
+        floating_window_above_cur_line = false, -- Attempt to float the popup above the cursor position 
+                                               -- (note, if the height of the float would be greater than the space left above the cursor, it will default 
+                                               -- to placing the float below the cursor. The max_height option allows for finer tuning of this)
+        silent = true               -- Prevents noisy notifications (make false to help debug why signature isn't working)
+      },
+      keymaps = {
+        next_signature = "<down>",
+        previous_signature = "<up>",
+        next_parameter = "<right>",
+        previous_parameter = "<left>",
+        close_signature = "<C-s>"
+      },
+      display_automatically = true -- Uses trigger characters to automatically display the signature overloads when typing a method signature
+    })
+  vim.api.nvim_set_keymap('n', '<C-s>', ':LspOverloadsSignature<CR>', { noremap = true, silent = true })
+  vim.api.nvim_set_keymap('i', '<C-s>', '<cmd>LspOverloadsSignature<CR>', { noremap = true, silent = true })
+
 end
 
 -- document existing key chains
@@ -472,12 +553,14 @@ require('mason-lspconfig').setup()
 --  If you want to override the default filetypes that your language server will attach to you can
 --  define the property 'filetypes' to the map in question.
 local servers = {
-  -- clangd = {},
-  -- gopls = {},
+  clangd = {},
+  gopls = {},
   -- pyright = {},
-  -- rust_analyzer = {},
+  rust_analyzer = {},
+  csharp_ls = {
+  },
   -- tsserver = {},
-  -- html = { filetypes = { 'html', 'twig', 'hbs'} },
+  html = { filetypes = { 'html', 'twig', 'hbs'} },
 
   lua_ls = {
     Lua = {
