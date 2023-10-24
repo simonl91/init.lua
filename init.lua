@@ -1,4 +1,5 @@
---[[
+--[[ 
+
 
 =====================================================================
 ==================== READ THIS BEFORE CONTINUING ====================
@@ -76,6 +77,8 @@ require('lazy').setup({
 
   'ThePrimeagen/harpoon',
 
+  -- testing homemade plugin
+
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
   {
@@ -115,6 +118,14 @@ require('lazy').setup({
     -- Method overloading
     'Issafalcon/lsp-overloads.nvim'
   },
+  {
+    'simonl91/fanuc-karel-diagnostics.nvim',
+  },
+
+--   {
+--     'simonl91/fanuc-karel-diagnostics.nvim',
+--     dir = 'C:\\Users\\SimonLANGLO\\source\\repos\\fanuc-karel-diagnostics.nvim'
+--   },
 
   -- Useful plugin to show you pending keybinds.
   { 'folke/which-key.nvim', opts = {} },
@@ -308,6 +319,8 @@ vim.keymap.set({"n", "v"}, "<leader>y", [["+y]])
 vim.keymap.set("n", "<leader>Y", [["+Y]])
 
 vim.keymap.set({"n", "v"}, "<leader>d", [["_d]])
+
+vim.keymap.set('t', '<Esc>', "<C-\\><C-n>",{silent = true})
 
 -- Remap for dealing with word wrap
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
@@ -515,13 +528,13 @@ local on_attach = function(client, bufnr)
         silent = true               -- Prevents noisy notifications (make false to help debug why signature isn't working)
       },
       keymaps = {
-        next_signature = "<down>",
-        previous_signature = "<up>",
+        next_signature = "<C-n>",
+        previous_signature = "<C-p>",
         next_parameter = "<right>",
         previous_parameter = "<left>",
         close_signature = "<C-s>"
       },
-      display_automatically = true -- Uses trigger characters to automatically display the signature overloads when typing a method signature
+      display_automatically = false -- Uses trigger characters to automatically display the signature overloads when typing a method signature
     })
   vim.api.nvim_set_keymap('n', '<C-s>', ':LspOverloadsSignature<CR>', { noremap = true, silent = true })
   vim.api.nvim_set_keymap('i', '<C-s>', '<cmd>LspOverloadsSignature<CR>', { noremap = true, silent = true })

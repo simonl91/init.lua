@@ -115,3 +115,4 @@ hi def link karelComment     Comment
 
 
 let b:current_syntax = "karel"
+:hi karelIdentifier guifg=#aab2bf
