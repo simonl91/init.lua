@@ -190,7 +190,27 @@ require('lazy').setup({
       },
     },
   },
-
+  {
+    "nvim-neorg/neorg",
+    build = ":Neorg sync-parsers",
+    dependencies = { {"nvim-lua/plenary.nvim"}, {"nvim-neorg/neorg-telescope"} },
+    config = function()
+      require("neorg").setup {
+        load = {
+          ["core.defaults"] = {}, -- Loads default behaviour
+          ["core.concealer"] = {}, -- Adds pretty icons to your documents
+          ["core.dirman"] = { -- Manages Neorg workspaces
+            config = {
+              workspaces = {
+                notes = "~/notes",
+              },
+            },
+          },
+          ["core.integrations.telescope"] = {},
+        },
+      }
+    end,
+  },
   {
     -- Add indentation guides even on blank lines
     'lukas-reineke/indent-blankline.nvim',
@@ -326,6 +346,9 @@ vim.keymap.set('t', '<Esc>', "<C-\\><C-n>",{silent = true})
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
+-- Start neorg
+vim.keymap.set('n', '<leader>n', ":Neorg workspace notes<CR>", { desc = '[N]otes' })
+
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
@@ -343,10 +366,10 @@ local mark = require('harpoon.mark')
 local ui = require('harpoon.ui')
 vim.keymap.set('n', '<leader>a', mark.add_file, { desc = 'Harpoon [A]dd file' })
 vim.keymap.set('n', '<leader>l', ui.toggle_quick_menu, { desc = 'Harpoon [L]ist files' })
-vim.keymap.set('n', '<M-a>', function () ui.nav_file(1) end)
-vim.keymap.set('n', '<M-s>', function () ui.nav_file(2) end)
-vim.keymap.set('n', '<M-d>', function () ui.nav_file(3) end)
-vim.keymap.set('n', '<M-f>', function () ui.nav_file(4) end)
+vim.keymap.set('n', '<leader>1', function () ui.nav_file(1) end)
+vim.keymap.set('n', '<leader>2', function () ui.nav_file(2) end)
+vim.keymap.set('n', '<leader>3', function () ui.nav_file(3) end)
+vim.keymap.set('n', '<leader>4', function () ui.nav_file(4) end)
 
 
 -- [[ Configure Telescope ]]
@@ -362,7 +385,6 @@ require('telescope').setup {
   },
 }
 
-require('nvim-treesitter.install').compilers = { "clang" }
 
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
@@ -392,7 +414,7 @@ vim.keymap.set('n', '<leader>fr', require('telescope.builtin').resume, { desc = 
 vim.defer_fn(function()
   require('nvim-treesitter.configs').setup {
     -- Add languages to be installed here that you want installed for treesitter
-    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash' },
+    ensure_installed = {  'go', 'lua',  'rust',  'javascript', 'typescript', 'vimdoc', 'vim', },
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
     auto_install = false,
@@ -505,7 +527,6 @@ local on_attach = function(client, bufnr)
     vim.lsp.buf.format()
   end, { desc = 'Format current buffer with LSP' })
 
-
   require('lsp-overloads').setup(client, {
       -- UI options are mostly the same as those passed to vim.lsp.util.open_floating_preview
       ui = {
@@ -522,7 +543,7 @@ local on_attach = function(client, bufnr)
         focus = false,              -- If focusable is also true, and this is set to true, navigating through overloads will focus into the popup window (probably not what you want)
         offset_x = 0,               -- Horizontal offset of the floating window relative to the cursor position
         offset_y = 0,                -- Vertical offset of the floating window relative to the cursor position
-        floating_window_above_cur_line = false, -- Attempt to float the popup above the cursor position 
+        floating_window_above_cur_line = true, -- Attempt to float the popup above the cursor position 
                                                -- (note, if the height of the float would be greater than the space left above the cursor, it will default 
                                                -- to placing the float below the cursor. The max_height option allows for finer tuning of this)
         silent = true               -- Prevents noisy notifications (make false to help debug why signature isn't working)
@@ -538,11 +559,35 @@ local on_attach = function(client, bufnr)
     })
   vim.api.nvim_set_keymap('n', '<C-s>', ':LspOverloadsSignature<CR>', { noremap = true, silent = true })
   vim.api.nvim_set_keymap('i', '<C-s>', '<cmd>LspOverloadsSignature<CR>', { noremap = true, silent = true })
-
 end
+
+
+
+vim.defer_fn(function ()
+
+  require('nvim-treesitter.install').prefer_git = false
+  require('nvim-treesitter.install').compilers = { "clang" }
+
+  local neorg_callbacks = require("neorg.core.callbacks")
+  neorg_callbacks.on_event("core.keybinds.events.enable_keybinds", function (_, keybinds)
+   -- map all keys below only when the norg mode is active
+    keybinds.map_event_to_mode("norg", {
+      n = {
+        {"<leader>fl", "core.integrations.telescope.find_linkable"},
+      },
+      i = {
+        { "<C-l>", "core.integrations.telescope.insert_link" },
+      },
+    }, {
+        silent = true,
+        noremap = true,
+    })
+  end)
+end, 0)
 
 -- document existing key chains
 require('which-key').register {
+  ['<leader>t'] = { name = '[T]odo', _ = 'which_key_ignore' },
   ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
   ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
   ['<leader>g'] = { name = '[G]it', _ = 'which_key_ignore' },
