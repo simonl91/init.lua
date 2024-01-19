@@ -1,4 +1,4 @@
---[[ 
+--[[
 
 
 =====================================================================
@@ -77,6 +77,7 @@ require('lazy').setup({
 
   'ThePrimeagen/harpoon',
 
+  'github/copilot.vim',
   -- testing homemade plugin
 
   -- NOTE: This is where your plugins related to LSP can be installed.
@@ -122,13 +123,13 @@ require('lazy').setup({
     'simonl91/fanuc-karel-diagnostics.nvim',
   },
 
---   {
---     'simonl91/fanuc-karel-diagnostics.nvim',
---     dir = 'C:\\Users\\SimonLANGLO\\source\\repos\\fanuc-karel-diagnostics.nvim'
---   },
+  --   {
+  --     'simonl91/fanuc-karel-diagnostics.nvim',
+  --     dir = 'C:\\Users\\SimonLANGLO\\source\\repos\\fanuc-karel-diagnostics.nvim'
+  --   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim', opts = {} },
+  { 'folke/which-key.nvim',  opts = {} },
   {
     -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -193,13 +194,13 @@ require('lazy').setup({
   {
     "nvim-neorg/neorg",
     build = ":Neorg sync-parsers",
-    dependencies = { {"nvim-lua/plenary.nvim"}, {"nvim-neorg/neorg-telescope"} },
+    dependencies = { { "nvim-lua/plenary.nvim" }, { "nvim-neorg/neorg-telescope" } },
     config = function()
       require("neorg").setup {
         load = {
-          ["core.defaults"] = {}, -- Loads default behaviour
+          ["core.defaults"] = {},  -- Loads default behaviour
           ["core.concealer"] = {}, -- Adds pretty icons to your documents
-          ["core.dirman"] = { -- Manages Neorg workspaces
+          ["core.dirman"] = {      -- Manages Neorg workspaces
             config = {
               workspaces = {
                 notes = "~/notes",
@@ -234,8 +235,9 @@ require('lazy').setup({
       -- requirements installed.
       {
         'nvim-telescope/telescope-fzf-native.nvim',
-        build = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build'
-      } ,
+        build =
+        'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build'
+      },
     },
   },
 
@@ -251,8 +253,8 @@ require('lazy').setup({
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
   --       Uncomment any of the lines below to enable them.
-  -- require 'kickstart.plugins.autoformat',
-  -- require 'kickstart.plugins.debug',
+  require 'kickstart.plugins.autoformat',
+  require 'kickstart.plugins.debug',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    You can use this folder to prevent any conflicts with this init.lua if you're interested in keeping
@@ -262,6 +264,8 @@ require('lazy').setup({
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
   -- { import = 'custom.plugins' },
 }, {})
+
+require 'custom.plugins.fanuc'
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -318,6 +322,20 @@ vim.o.completeopt = 'menuone,noselect'
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
 
+
+-- [[ filetypes ]]
+vim.filetype.add(
+  {
+    extension = {
+      templ = "templ",
+      fsharp = "fs",
+    },
+  }
+)
+
+-- [Copilot]
+vim.g.copilot_assume_mapped = true
+vim.api.nvim_set_keymap("i", "<C-j>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
 -- [[ Basic Keymaps ]]
 
 -- Keymaps for better default experience
@@ -335,12 +353,12 @@ vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
 vim.keymap.set("x", "<leader>p", [["_dP]])
-vim.keymap.set({"n", "v"}, "<leader>y", [["+y]])
+vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]])
 vim.keymap.set("n", "<leader>Y", [["+Y]])
 
-vim.keymap.set({"n", "v"}, "<leader>d", [["_d]])
+vim.keymap.set({ "n", "v" }, "<leader>d", [["_d]])
 
-vim.keymap.set('t', '<Esc>', "<C-\\><C-n>",{silent = true})
+vim.keymap.set('t', '<Esc>', "<C-\\><C-n>", { silent = true })
 
 -- Remap for dealing with word wrap
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
@@ -348,6 +366,10 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 
 -- Start neorg
 vim.keymap.set('n', '<leader>n', ":Neorg workspace notes<CR>", { desc = '[N]otes' })
+
+-- Compile and ftp fanuc karel program
+vim.keymap.set('n', '<leader>cf', ':FanucBuildTransfer "192.168.2.10"<CR>')
+vim.keymap.set('n', '<leader>cd', ':FanucBuildTransfer "192.168.2.10" del<CR>')
 
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
@@ -366,10 +388,10 @@ local mark = require('harpoon.mark')
 local ui = require('harpoon.ui')
 vim.keymap.set('n', '<leader>a', mark.add_file, { desc = 'Harpoon [A]dd file' })
 vim.keymap.set('n', '<leader>l', ui.toggle_quick_menu, { desc = 'Harpoon [L]ist files' })
-vim.keymap.set('n', '<leader>1', function () ui.nav_file(1) end)
-vim.keymap.set('n', '<leader>2', function () ui.nav_file(2) end)
-vim.keymap.set('n', '<leader>3', function () ui.nav_file(3) end)
-vim.keymap.set('n', '<leader>4', function () ui.nav_file(4) end)
+vim.keymap.set('n', '<leader>1', function() ui.nav_file(1) end)
+vim.keymap.set('n', '<leader>2', function() ui.nav_file(2) end)
+vim.keymap.set('n', '<leader>3', function() ui.nav_file(3) end)
+vim.keymap.set('n', '<leader>4', function() ui.nav_file(4) end)
 
 
 -- [[ Configure Telescope ]]
@@ -414,7 +436,7 @@ vim.keymap.set('n', '<leader>fr', require('telescope.builtin').resume, { desc = 
 vim.defer_fn(function()
   require('nvim-treesitter.configs').setup {
     -- Add languages to be installed here that you want installed for treesitter
-    ensure_installed = {  'go', 'lua',  'rust',  'javascript', 'typescript', 'vimdoc', 'vim', },
+    ensure_installed = { 'go', 'lua', 'rust', 'javascript', 'typescript', 'vimdoc', 'vim', 'templ' },
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
     auto_install = false,
@@ -528,59 +550,58 @@ local on_attach = function(client, bufnr)
   end, { desc = 'Format current buffer with LSP' })
 
   require('lsp-overloads').setup(client, {
-      -- UI options are mostly the same as those passed to vim.lsp.util.open_floating_preview
-      ui = {
-        border = "single",           -- The border to use for the signature popup window. Accepts same border values as |nvim_open_win()|.
-        height = nil,               -- Height of the signature popup window (nil allows dynamic sizing based on content of the help)
-        width = nil,                -- Width of the signature popup window (nil allows dynamic sizing based on content of the help)
-        wrap = true,                -- Wrap long lines
-        wrap_at = nil,              -- Character to wrap at for computing height when wrap enabled
-        max_width = nil,            -- Maximum signature popup width
-        max_height = nil,           -- Maximum signature popup height
-        -- Events that will close the signature popup window: use {"CursorMoved", "CursorMovedI", "InsertCharPre"} to hide the window when typing
-        close_events = { "CursorMoved", "BufHidden", "InsertLeave" },
-        focusable = true,           -- Make the popup float focusable
-        focus = false,              -- If focusable is also true, and this is set to true, navigating through overloads will focus into the popup window (probably not what you want)
-        offset_x = 0,               -- Horizontal offset of the floating window relative to the cursor position
-        offset_y = 0,                -- Vertical offset of the floating window relative to the cursor position
-        floating_window_above_cur_line = true, -- Attempt to float the popup above the cursor position 
-                                               -- (note, if the height of the float would be greater than the space left above the cursor, it will default 
-                                               -- to placing the float below the cursor. The max_height option allows for finer tuning of this)
-        silent = true               -- Prevents noisy notifications (make false to help debug why signature isn't working)
-      },
-      keymaps = {
-        next_signature = "<C-n>",
-        previous_signature = "<C-p>",
-        next_parameter = "<right>",
-        previous_parameter = "<left>",
-        close_signature = "<C-s>"
-      },
-      display_automatically = false -- Uses trigger characters to automatically display the signature overloads when typing a method signature
-    })
+    -- UI options are mostly the same as those passed to vim.lsp.util.open_floating_preview
+    ui = {
+      border = "single", -- The border to use for the signature popup window. Accepts same border values as |nvim_open_win()|.
+      height = nil,      -- Height of the signature popup window (nil allows dynamic sizing based on content of the help)
+      width = nil,       -- Width of the signature popup window (nil allows dynamic sizing based on content of the help)
+      wrap = true,       -- Wrap long lines
+      wrap_at = nil,     -- Character to wrap at for computing height when wrap enabled
+      max_width = nil,   -- Maximum signature popup width
+      max_height = nil,  -- Maximum signature popup height
+      -- Events that will close the signature popup window: use {"CursorMoved", "CursorMovedI", "InsertCharPre"} to hide the window when typing
+      close_events = { "CursorMoved", "BufHidden", "InsertLeave" },
+      focusable = true,                      -- Make the popup float focusable
+      focus = false,                         -- If focusable is also true, and this is set to true, navigating through overloads will focus into the popup window (probably not what you want)
+      offset_x = 0,                          -- Horizontal offset of the floating window relative to the cursor position
+      offset_y = 0,                          -- Vertical offset of the floating window relative to the cursor position
+      floating_window_above_cur_line = true, -- Attempt to float the popup above the cursor position
+      -- (note, if the height of the float would be greater than the space left above the cursor, it will default
+      -- to placing the float below the cursor. The max_height option allows for finer tuning of this)
+      silent = true -- Prevents noisy notifications (make false to help debug why signature isn't working)
+    },
+    keymaps = {
+      next_signature = "<C-n>",
+      previous_signature = "<C-p>",
+      next_parameter = "<right>",
+      previous_parameter = "<left>",
+      close_signature = "<C-s>"
+    },
+    display_automatically = false -- Uses trigger characters to automatically display the signature overloads when typing a method signature
+  })
   vim.api.nvim_set_keymap('n', '<C-s>', ':LspOverloadsSignature<CR>', { noremap = true, silent = true })
   vim.api.nvim_set_keymap('i', '<C-s>', '<cmd>LspOverloadsSignature<CR>', { noremap = true, silent = true })
 end
 
 
 
-vim.defer_fn(function ()
-
-  require('nvim-treesitter.install').prefer_git = false
+vim.defer_fn(function()
+  require('nvim-treesitter.install').prefer_git = true
   require('nvim-treesitter.install').compilers = { "clang" }
 
   local neorg_callbacks = require("neorg.core.callbacks")
-  neorg_callbacks.on_event("core.keybinds.events.enable_keybinds", function (_, keybinds)
-   -- map all keys below only when the norg mode is active
+  neorg_callbacks.on_event("core.keybinds.events.enable_keybinds", function(_, keybinds)
+    -- map all keys below only when the norg mode is active
     keybinds.map_event_to_mode("norg", {
       n = {
-        {"<leader>fl", "core.integrations.telescope.find_linkable"},
+        { "<leader>fl", "core.integrations.telescope.find_linkable" },
       },
       i = {
         { "<C-l>", "core.integrations.telescope.insert_link" },
       },
     }, {
-        silent = true,
-        noremap = true,
+      silent = true,
+      noremap = true,
     })
   end)
 end, 0)
@@ -613,12 +634,13 @@ require('mason-lspconfig').setup()
 local servers = {
   clangd = {},
   gopls = {},
+  fsautocomplete = {},
   -- pyright = {},
   rust_analyzer = {},
   csharp_ls = {
   },
   -- tsserver = {},
-  html = { filetypes = { 'html', 'twig', 'hbs'} },
+  html = { filetypes = { 'html', 'twig', 'hbs' } },
 
   lua_ls = {
     Lua = {
