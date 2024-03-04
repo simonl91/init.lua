@@ -143,7 +143,8 @@ require('lazy').setup({
         changedelete = { text = '~' },
       },
       on_attach = function(bufnr)
-        vim.keymap.set('n', '<leader>hp', require('gitsigns').preview_hunk, { buffer = bufnr, desc = 'Preview git hunk' })
+        vim.keymap.set('n', '<leader>hp', require('gitsigns').preview_hunk,
+          { buffer = bufnr, desc = 'Preview git hunk' })
 
         -- don't override the built-in and fugitive keymaps
         local gs = package.loaded.gitsigns
@@ -434,6 +435,16 @@ vim.keymap.set('n', '<leader>fr', require('telescope.builtin').resume, { desc = 
 -- See `:help nvim-treesitter`
 -- Defer Treesitter setup after first render to improve startup time of 'nvim {filename}'
 vim.defer_fn(function()
+  local parser_config = require('nvim-treesitter.parsers').get_parser_configs()
+  parser_config.fsharp = {
+    install_info = {
+      url = 'C:\\Users\\SimonLANGLO\\source\\repos\\tree-sitter-fsharp',
+      -- branch = "develop",
+      files = { "src/scanner.cc", "src/parser.c" },
+    },
+    filetype = "fsharp"
+  }
+
   require('nvim-treesitter.configs').setup {
     -- Add languages to be installed here that you want installed for treesitter
     ensure_installed = { 'go', 'lua', 'rust', 'javascript', 'typescript', 'vimdoc', 'vim', 'templ' },
@@ -548,6 +559,15 @@ local on_attach = function(client, bufnr)
   vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
     vim.lsp.buf.format()
   end, { desc = 'Format current buffer with LSP' })
+
+  vim.api.nvim_create_augroup("codelens_refresh", { clear = true })
+  vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
+    group = "codelens_refresh",
+    pattern = { "*.fs", "*.fsx", "*.fsi" },
+    callback = function()
+      vim.lsp.codelens.refresh()
+    end
+  })
 
   require('lsp-overloads').setup(client, {
     -- UI options are mostly the same as those passed to vim.lsp.util.open_floating_preview
