@@ -207,9 +207,12 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 --  See `:help wincmd` for a list of all window commands
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+-- vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
+-- vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+vim.keymap.set('n', '<C-j>', '<CMD>:cnext<CR>', { desc = 'Next quick fix item' })
+vim.keymap.set('n', '<C-k>', '<CMD>:cprev<CR>', { desc = 'Prev quick fix item' })
+--
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -450,7 +453,20 @@ require('lazy').setup({
       end, { desc = '[F]ind [N]eovim files' })
     end,
   },
-
+  -- {
+  --   'speed2exe/zig-comp-diag.nvim',
+  --   config = function()
+  --     require('zig-comp-diag').setup()
+  --     local zigGroup = vim.api.nvim_create_augroup('simonl91.zig', {})
+  --     vim.api.nvim_create_autocmd({ 'BufWritePre' }, {
+  --       group = zigGroup,
+  --       pattern = '*.zig',
+  --       callback = function()
+  --         require('zig-comp-diag').runWithCmd { 'zig', 'build-exe', 'main.zig' }
+  --       end,
+  --     })
+  --   end,
+  -- },
   { -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
     dependencies = {
